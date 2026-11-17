@@ -1,0 +1,27 @@
+{
+    "latest":  "1.0.0",
+    "releases":  [
+                     {
+                         "version":  "1.0.0",
+                         "date":  "2026-11-17",
+                         "intro":  "The first public release.",
+                         "notes":  [
+                                       "30 themes and 10 clock styles (digital, flip, analog, segment, binary, words and more), with 11 digit animations.",
+                                       "Living scenes: Forest, Ocean, Sunset, Space, Synthwave, Winter and City, with the real moon phase, and birds that carry in each new minute.",
+                                       "Your own background picture, any size: fill, show all, stretch, actual size or tile, then zoom and place it anywhere.",
+                                       "See-through backgrounds, clear or frosted glass, that hide the taskbar when fullscreen.",
+                                       "Match the background: the clock picks its own colors from your picture, background color or desktop.",
+                                       "Alarms, a timer and a stopwatch. Alarms ring even with the clock hidden, and can wake the PC.",
+                                       "Always opens on the display it was last on, waits for screens that connect late, and moves back when one reconnects.",
+                                       "A pin that keeps the clock above every other window.",
+                                       "Uses almost no power: Windows efficiency mode, pauses when nobody can see it, and starts gently at sign-in.",
+                                       "Counts the total time it has been open, which never resets.",
+                                       "Settings laid out like Windows 11, with a search box, and a slim top bar with the pages, the pin and Settings.",
+                                       "Updates itself from the download page."
+                                   ],
+                         "size":  526848,
+                         "sha256":  "016628c6bb83ea09c8de25ac5a2be694237e2fd66a1bf585006140cd6c15571c",
+                         "url":  "https://github.com/Howzit5217/clock-launcher-site/releases/download/v1.0.0/ClockLauncher.exe"
+                     }
+                 ]
+}
