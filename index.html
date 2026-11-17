@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clock Launcher: a beautiful desktop clock for Windows</title>
+<meta name="description" content="A beautiful, low-power desktop clock for Windows 10 and 11. 30 themes, living scenes, your own pictures, alarms, a timer and a stopwatch. Free, and it keeps itself up to date.">
+<meta property="og:title" content="Clock Launcher">
+<meta property="og:description" content="A beautiful, low-power desktop clock for Windows 10 and 11. Free.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#0e1014">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --bg: #0e1014; --bg2: #12151b; --card: #181b22; --card2: #1d2129; --stroke: rgba(255,255,255,.08); --stroke2: rgba(255,255,255,.14);
+    --text: #f3f5f9; --dim: #aab3c2; --faint: #7d8697; --accent: #4c9bff; --accent2: #7cc4ff; --accentInk: #04121f;
+    --radius: 14px; --ui: 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    --display: 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 var(--ui); -webkit-font-smoothing: antialiased; }
+  a { color: var(--accent2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+  h1, h2, h3 { font-family: var(--display); letter-spacing: -.01em; }
+  h2 { font-size: clamp(28px, 4vw, 40px); line-height: 1.15; margin: 0 0 10px; }
+  .lead { color: var(--dim); font-size: 18px; margin: 0; max-width: 640px; }
+  section { padding: 88px 0; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 8px; color: var(--accent2); font-size: 14px; font-weight: 600; letter-spacing: .02em; margin-bottom: 14px; }
+
+  /* ---------- top bar ---------- */
+  nav { position: sticky; top: 0; z-index: 10; background: rgba(14,16,20,.72); backdrop-filter: saturate(160%) blur(16px); -webkit-backdrop-filter: saturate(160%) blur(16px); border-bottom: 1px solid var(--stroke); }
+  nav .wrap { display: flex; align-items: center; gap: 28px; height: 60px; }
+  .brand { display: flex; align-items: center; gap: 10px; color: var(--text); font: 600 17px var(--display); }
+  .brand:hover { text-decoration: none; }
+  .brand img { width: 26px; height: 26px; }
+  nav .links { display: flex; gap: 22px; margin-left: auto; }
+  nav .links a { color: var(--dim); font-size: 15px; }
+  nav .links a:hover { color: var(--text); text-decoration: none; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; border-radius: 10px; font: 600 15px var(--ui); padding: 11px 20px; border: 1px solid transparent; cursor: pointer; transition: transform .12s ease, background .15s ease, box-shadow .15s ease; white-space: nowrap; }
+  .btn:hover { text-decoration: none; }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary { background: linear-gradient(180deg, #6ab0ff, #3d8bf5); color: #fff; box-shadow: 0 8px 24px rgba(61,139,245,.35), inset 0 1px 0 rgba(255,255,255,.25); }
+  .btn.primary:hover { box-shadow: 0 10px 30px rgba(61,139,245,.5), inset 0 1px 0 rgba(255,255,255,.25); }
+  .btn.ghost { background: rgba(255,255,255,.06); border-color: var(--stroke2); color: var(--text); }
+  .btn.ghost:hover { background: rgba(255,255,255,.1); }
+  .btn.small { padding: 7px 14px; font-size: 14px; border-radius: 8px; }
+  .btn svg { width: 18px; height: 18px; flex: none; }
+
+  /* ---------- hero ---------- */
+  .hero { position: relative; padding: 72px 0 96px; overflow: hidden; }
+  .hero::before { content: ""; position: absolute; inset: -30% -10% auto; height: 760px; background: radial-gradient(600px 380px at 72% 30%, rgba(76,155,255,.22), transparent 70%), radial-gradient(520px 340px at 18% 10%, rgba(140,92,246,.16), transparent 70%); pointer-events: none; }
+  .hero .wrap { position: relative; display: grid; grid-template-columns: 1fr 1.08fr; gap: 56px; align-items: center; }
+  .hero .wrap > * { min-width: 0; }
+  .hero h1 { font-size: clamp(38px, 5.6vw, 62px); line-height: 1.04; margin: 0 0 18px; }
+  .hero h1 em { font-style: normal; background: linear-gradient(90deg, #8fd0ff, #5b9dff 50%, #a98bff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; margin: 30px 0 14px; }
+  .meta { color: var(--faint); font-size: 14px; }
+  .meta b { color: var(--dim); font-weight: 600; }
+
+  /* the clock window, drawn like the app */
+  .demo { display: flex; flex-direction: column; gap: 14px; }
+  .window { border-radius: 12px; overflow: hidden; border: 1px solid var(--stroke2); box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 2px 6px rgba(0,0,0,.4); background: #000; }
+  .bar { display: flex; align-items: center; height: 38px; background: #202020; border-bottom: 1px solid #1a1a1a; font-size: 13px; color: #c5c5c5; user-select: none; overflow: hidden; white-space: nowrap; }
+  .bar .ic { width: 15px; height: 15px; margin: 0 10px 0 14px; }
+  .bar .tab { display: flex; align-items: center; gap: 7px; padding: 0 10px; height: 100%; position: relative; }
+  .bar .tab.on { color: #fff; }
+  .bar .tab.on::after { content: ""; position: absolute; left: 50%; bottom: 4px; width: 16px; height: 3px; margin-left: -8px; border-radius: 2px; background: #60cdff; }
+  .bar svg { width: 14px; height: 14px; }
+  .bar .sp { flex: 1; }
+  .bar .cap { width: 42px; display: flex; justify-content: center; color: #e8e8e8; }
+  .bar .pin { color: #fff; position: relative; padding: 0 11px; height: 100%; display: flex; align-items: center; }
+  .bar .pin::after { content: ""; position: absolute; left: 50%; bottom: 4px; width: 14px; height: 3px; margin-left: -7px; border-radius: 2px; background: #60cdff; }
+  .bar .set { display: flex; align-items: center; gap: 7px; padding: 0 12px; }
+  .face { aspect-ratio: 16 / 8.6; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: background .8s ease; position: relative; }
+  .time { display: flex; align-items: center; line-height: 1; color: var(--fg); text-shadow: var(--glow); transition: color .8s ease; }
+  .hm { font-size: clamp(64px, 10vw, 118px); font-variant-numeric: tabular-nums; }
+  .side { display: flex; flex-direction: column; margin-left: .4em; gap: .28em; font-size: clamp(16px, 2.2vw, 26px); }
+  .ap { color: var(--dimc); } .s { color: var(--accent); font-size: 1.5em; font-variant-numeric: tabular-nums; }
+  .date { color: var(--dimc); margin-top: 12px; font-size: clamp(14px, 1.7vw, 19px); text-shadow: var(--glow); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .chip { border: 1px solid var(--stroke2); background: rgba(255,255,255,.04); color: var(--dim); border-radius: 999px; padding: 5px 12px 5px 7px; font: 13px var(--ui); cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
+  .chip i { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(255,255,255,.25); }
+  .chip:hover { color: var(--text); border-color: rgba(255,255,255,.3); }
+  .chip.on { color: var(--text); background: rgba(76,155,255,.16); border-color: rgba(76,155,255,.6); }
+
+  /* ---------- features ---------- */
+  .head { margin-bottom: 40px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .feat { background: linear-gradient(180deg, var(--card2), var(--card)); border: 1px solid var(--stroke); border-radius: var(--radius); padding: 24px; }
+  .feat .i { width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center; background: rgba(76,155,255,.12); color: var(--accent2); margin-bottom: 16px; }
+  .feat .i svg { width: 22px; height: 22px; }
+  .feat h3 { font-size: 18px; margin: 0 0 6px; }
+  .feat p { margin: 0; color: var(--dim); font-size: 15px; }
+
+  /* ---------- themes ---------- */
+  .themes { background: var(--bg2); border-top: 1px solid var(--stroke); border-bottom: 1px solid var(--stroke); }
+  .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 18px 14px; }
+  .gallery button { all: unset; cursor: pointer; display: block; border-radius: 10px; }
+  .gallery button:focus-visible .card { outline: 2px solid var(--accent2); outline-offset: 2px; }
+  .card { aspect-ratio: 16 / 9; border-radius: 10px; border: 1px solid var(--stroke); display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; transition: transform .15s ease, box-shadow .15s ease; }
+  .gallery button:hover .card { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(0,0,0,.45); }
+  .card .hm { font-size: 40px; } .card .side { font-size: 12px; } .card .date { font-size: 11px; margin-top: 4px; }
+  .gallery .name { display: block; color: var(--dim); font-size: 13px; padding: 8px 2px 0; }
+
+  /* ---------- download ---------- */
+  .dl { display: grid; grid-template-columns: 1.1fr .9fr; gap: 20px; align-items: start; }
+  .panel { background: linear-gradient(180deg, var(--card2), var(--card)); border: 1px solid var(--stroke); border-radius: var(--radius); padding: 28px; }
+  .ver { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+  .ver strong { font: 600 34px var(--display); }
+  .badge { font-size: 12px; font-weight: 600; color: #b8f5c8; background: rgba(46,160,67,.18); border: 1px solid rgba(46,160,67,.45); border-radius: 999px; padding: 2px 10px; }
+  .facts { color: var(--dim); font-size: 15px; margin: 0 0 22px; }
+  .sha { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--stroke); font-size: 13px; color: var(--faint); }
+  .sha code { display: block; margin-top: 6px; font: 12.5px/1.5 'Cascadia Mono', Consolas, ui-monospace, monospace; color: var(--dim); word-break: break-all; background: rgba(0,0,0,.25); border: 1px solid var(--stroke); border-radius: 8px; padding: 8px 10px; }
+  .copy { all: unset; cursor: pointer; color: var(--accent2); margin-left: 8px; font-size: 13px; }
+  .steps { list-style: none; counter-reset: s; margin: 0; padding: 0; }
+  .steps li { counter-increment: s; position: relative; padding: 0 0 18px 44px; color: var(--dim); }
+  .steps li:last-child { padding-bottom: 0; }
+  .steps li::before { content: counter(s); position: absolute; left: 0; top: -2px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: rgba(76,155,255,.15); color: var(--accent2); font-weight: 700; font-size: 14px; }
+  .steps b { color: var(--text); font-weight: 600; }
+  .req { color: var(--faint); font-size: 14px; margin-top: 18px; }
+
+  /* ---------- versions ---------- */
+  .rel { border-left: 2px solid var(--stroke2); margin-left: 6px; }
+  .rel article { position: relative; padding: 0 0 34px 30px; }
+  .rel article::before { content: ""; position: absolute; left: -7px; top: 8px; width: 12px; height: 12px; border-radius: 50%; background: var(--bg); border: 2px solid var(--accent); }
+  .rel h3 { margin: 0; font-size: 22px; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .rel time { color: var(--faint); font: 400 14px var(--ui); }
+  .rel p { color: var(--dim); margin: 8px 0 0; }
+  .rel ul { margin: 10px 0 0; padding-left: 20px; color: var(--dim); }
+  .rel li { margin: 4px 0; }
+  .rel .get { font-size: 14px; margin-top: 10px; display: inline-block; }
+
+  footer { border-top: 1px solid var(--stroke); padding: 34px 0 44px; color: var(--faint); font-size: 14px; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; }
+  footer .sp { flex: 1; }
+
+  @media (max-width: 960px) {
+    .hero .wrap, .dl { grid-template-columns: 1fr; }
+    .grid { grid-template-columns: repeat(2, 1fr); }
+    nav .links { display: none; }
+    nav .wrap .btn { margin-left: auto; }
+  }
+  @media (max-width: 600px) {
+    .wrap { padding: 0 16px; }
+    section { padding: 64px 0; }
+    .hero { padding: 40px 0 64px; }
+    .grid { grid-template-columns: 1fr; }
+    .bar .tab .lbl, .bar .set .lbl { display: none; }
+    .bar .tab { padding: 0 7px; } .bar .pin, .bar .set { padding: 0 8px; } .bar .cap { width: 30px; } .bar .ic { margin: 0 6px 0 10px; }
+    .gallery { grid-template-columns: repeat(2, 1fr); }
+    .card .hm { font-size: 30px; }
+    .panel { padding: 22px; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .face, .time, .card, .btn { transition: none; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#"><img src="favicon.svg" alt="">Clock Launcher</a>
+    <div class="links"><a href="#features">Features</a><a href="#themes">Themes</a><a href="#download">Download</a><a href="#changes">What's new</a></div>
+    <a class="btn primary small" href="#download">Download</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">Free for Windows 10 and 11</div>
+      <h1>A beautiful clock that <em>lives on your desktop</em></h1>
+      <p class="lead">30 themes, living scenes and your own pictures, with alarms, a timer and a stopwatch. It always opens on the right screen, uses almost no power, and keeps itself up to date.</p>
+      <div class="cta">
+        <a class="btn primary dl-link" href="https://github.com/Howzit5217/clock-launcher-site/releases/latest/download/ClockLauncher.exe">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16"/></svg>
+          <span>Download <span class="v-label">for Windows</span></span>
+        </a>
+        <a class="btn ghost" href="#changes">What's new</a>
+      </div>
+      <div class="meta" id="hero-meta">Free · No installer · About half a megabyte</div>
+    </div>
+
+    <div class="demo" aria-label="A preview of Clock Launcher showing the time now">
+      <div class="window">
+        <div class="bar" aria-hidden="true">
+          <img class="ic" src="favicon.svg" alt="">
+          <span class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="lbl">Clock</span></span>
+          <span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21h4"/></svg><span class="lbl">Alarms</span></span>
+          <span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4M9 2h6"/></svg><span class="lbl">Timer</span></span>
+          <span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="14" r="7"/><path d="M12 10v4M12 3v4M19 7l-1.5 1.5"/></svg><span class="lbl">Stopwatch</span></span>
+          <span class="sp"></span>
+          <span class="pin"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15 3l6 6-3 1-4 4 1 5-2 2-4-4-5 5-1-1 5-5-4-4 2-2 5 1 4-4z"/></svg></span>
+          <span class="set"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span class="lbl">Settings</span></span>
+          <span class="cap">&#8212;</span><span class="cap">&#10530;</span><span class="cap">&#10005;</span>
+        </div>
+        <div class="face" id="demo">
+          <div class="time"><span class="hm">9:41</span><span class="side"><span class="ap">AM</span><span class="s">00</span></span></div>
+          <div class="date">Monday, November 17</div>
+        </div>
+      </div>
+      <div class="chips" id="demo-chips" role="group" aria-label="Try a theme"></div>
+    </div>
+  </div>
+</header>
+
+<section id="features">
+  <div class="wrap">
+    <div class="head">
+      <div class="eyebrow">Everything a desk clock should be</div>
+      <h2>Simple to look at. Lots to love.</h2>
+      <p class="lead">Move the mouse and a slim bar appears; leave it and only the time is left. Everything else is in Settings, laid out like Windows 11, with a search box.</p>
+    </div>
+    <div class="grid">
+      <div class="feat"><div class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="13.5" cy="6.5" r="1.5"/><circle cx="17.5" cy="10.5" r="1.5"/><circle cx="8.5" cy="7.5" r="1.5"/><circle cx="6.5" cy="12.5" r="1.5"/><path d="M12 22a10 10 0 1 1 10-10c0 2-1.5 3-3.5 3H16a2 2 0 0 0-1.5 3.3A2 2 0 0 1 12 22z"/></svg></div><h3>30 themes, 10 styles</h3><p>Digital, flip, analog, segment, binary, words and more, with 11 ways for the digits to change.</p></div>
+      <div class="feat"><div class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 20 6-9 4 5 3-4 5 8z"/><circle cx="17" cy="6" r="2.5"/></svg></div><h3>Living scenes</h3><p>Forest, ocean, sunset, space and more, with the real moon phase, and birds that carry in each new minute.</p></div>
+      <div class="feat"><div class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg></div><h3>Your own picture</h3><p>Any photo, any size: fill, fit, stretch or tile it, zoom it and drag it into place. The colors can match it by themselves.</p></div>
+      <div class="feat"><div class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3" stroke-dasharray="3 3"/><path d="M8 15c2-4 6-4 8-6"/></svg></div><h3>See-through</h3><p>Let your desktop show through, clear or frosted like glass, so it is just the time floating on your screen.</p></div>
+      <div class="feat"><div class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21h4"/></svg></div><h3>Alarms, timer, stopwatch</h3><p>Alarms ring even with the clock hidden, start gently and can wake the PC from sleep.</p></div>
+      <div class="feat"><div class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="12" height="9" rx="1.5"/><rect x="16" y="8" width="6" height="9" rx="1.5"/><path d="M6 17h4M8 13v4"/></svg></div><h3>Always on the right screen</h3><p>It opens on the display it was last on, waits for screens that wake up late, and moves back when one reconnects.</p></div>
+      <div class="feat"><div class="i"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15 3l6 6-3 1-4 4 1 5-2 2-4-4-5 5-1-1 5-5-4-4 2-2 5 1 4-4z"/></svg></div><h3>Pin it on top</h3><p>One click keeps it above every other window, even the ones you open after it.</p></div>
+      <div class="feat"><div class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 4 13c0-6 7-10 16-10 0 9-4 16-10 16"/><path d="M4 21c3-6 7-9 11-11"/></svg></div><h3>Sips power</h3><p>Windows efficiency mode, a pause whenever nobody can see it, and a gentle start that never slows down signing in.</p></div>
+      <div class="feat"><div class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></div><h3>Keeps itself up to date</h3><p>New versions come from this page by themselves, while you are not using the clock. Or choose to be asked first.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="themes" class="themes">
+  <div class="wrap">
+    <div class="head">
+      <div class="eyebrow">30 themes</div>
+      <h2>Find one that feels like you</h2>
+      <p class="lead">Every theme, showing the time right now. Pick one to try it above. In the app you can also change the font, the colors and the background, and save your favorite combinations.</p>
+    </div>
+    <div class="gallery" id="gallery"></div>
+  </div>
+</section>
+
+<section id="download">
+  <div class="wrap">
+    <div class="head">
+      <div class="eyebrow">Download</div>
+      <h2>Get Clock Launcher</h2>
+      <p class="lead">One small file. No installer, no account, nothing sent anywhere. The only thing it ever fetches is its own updates.</p>
+    </div>
+    <div class="dl">
+      <div class="panel">
+        <div class="ver"><strong id="dl-version">Latest version</strong><span class="badge">Latest</span></div>
+        <p class="facts" id="dl-facts">For Windows 10 and 11</p>
+        <a class="btn primary dl-link" href="https://github.com/Howzit5217/clock-launcher-site/releases/latest/download/ClockLauncher.exe">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16"/></svg>
+          Download ClockLauncher.exe
+        </a>
+        <a class="btn ghost" style="margin-left:8px" href="https://github.com/Howzit5217/clock-launcher-site/releases">All versions</a>
+        <div class="sha" id="dl-sha" hidden>SHA-256 fingerprint, to check the download is the real one <button class="copy" id="copy-sha" type="button">Copy</button><code id="sha-code"></code></div>
+      </div>
+      <div class="panel">
+        <ol class="steps">
+          <li><b>Download</b> ClockLauncher.exe and double-click it.</li>
+          <li><b>If Windows says it protected your PC,</b> choose <i>More info</i>, then <i>Run anyway</i>. That's because the app isn't code-signed, which costs a yearly fee.</li>
+          <li><b>That's it.</b> It opens straight away and starts with Windows (turn that off in <i>Settings &gt; Display &amp; window</i>). New versions come by themselves.</li>
+        </ol>
+        <p class="req">Needs Windows 10 or 11 with .NET Framework 4.8, which Windows already includes. To remove it: turn off <i>Start with Windows</i>, quit, and delete the file.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="changes" class="themes">
+  <div class="wrap">
+    <div class="head">
+      <div class="eyebrow">Version history</div>
+      <h2>What's new</h2>
+      <p class="lead">Every version, newest first. Version numbers go major.minor.patch: a patch fixes things, a minor version adds things.</p>
+    </div>
+    <div class="rel" id="releases"><article><h3>See the releases on GitHub</h3><p><a href="https://github.com/Howzit5217/clock-launcher-site/releases">github.com/Howzit5217/clock-launcher-site/releases</a></p></article></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>Clock Launcher <span class="v-plain"></span></span>
+    <span class="sp"></span>
+    <a href="https://github.com/Howzit5217/clock-launcher-site/releases">Releases</a>
+    <a href="#download">Download</a>
+    <span>Made by Howzit5217</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+  var REPO = 'https://github.com/Howzit5217/clock-launcher-site';
+
+  // ---------- themes: the app's own themes.json, drawn the way the app draws them ----------
+  var fallback = [
+    { name: 'Midnight', background: ['#0B0F17', '#141B2B'], angle: 90, text: '#E9EEF7', accent: '#7AA7FF', font: 'Segoe UI Variable Display', weight: 'Light', glow: 0 },
+    { name: 'Neon', background: ['#05010C', '#14032A'], angle: 120, text: '#3CF2FF', accent: '#FF3CD6', font: 'Bahnschrift', weight: 'Regular', glow: 0.9 },
+    { name: 'Sunset', background: ['#2B1055', '#7A2A8C', '#D9576C', '#FF9E6D'], angle: 90, text: '#FFF4EC', accent: '#FFD38A', font: 'Segoe UI Variable Display', weight: 'SemiBold', glow: 0.25, glowColor: '#FF9E6D' },
+    { name: 'Matrix', background: ['#000400'], angle: 90, text: '#39FF6A', accent: '#B6FFC8', font: 'Cascadia Mono', weight: 'Regular', glow: 0.6 },
+    { name: 'Paper', background: ['#F5F1E8'], angle: 90, text: '#262421', accent: '#C2412D', font: 'Sitka Display', weight: 'Regular', glow: 0, light: true }
+  ];
+  var weights = { Thin: 200, Light: 300, Regular: 400, SemiBold: 600, Bold: 700, Black: 900 };
+
+  function css(c) {   // #RRGGBB or the app's #AARRGGBB
+    c = String(c || '#000000');
+    return c.length === 9 ? '#' + c.slice(3) + c.slice(1, 3) : c;
+  }
+  function rgba(c, a) {
+    c = css(c).slice(1, 7);
+    return 'rgba(' + parseInt(c.slice(0, 2), 16) + ',' + parseInt(c.slice(2, 4), 16) + ',' + parseInt(c.slice(4, 6), 16) + ',' + a + ')';
+  }
+  function paint(el, t) {
+    var bg = (t.background || ['#000']).map(css);
+    el.style.background = bg.length < 2 ? bg[0] : (t.angle < 0 ? 'radial-gradient(circle at 50% 45%, ' + bg.join(', ') + ')' : 'linear-gradient(' + ((t.angle || 90) + 90) + 'deg, ' + bg.join(', ') + ')');
+    el.style.setProperty('--fg', css(t.text));
+    el.style.setProperty('--accent', css(t.accent));
+    el.style.setProperty('--dimc', rgba(t.text, 0.62));
+    var g = t.glow || 0;
+    el.style.setProperty('--glow', g > 0.02 ? '0 0 ' + Math.round(2 + 24 * g) + 'px ' + rgba(t.glowColor || t.text, Math.min(1, 0.35 + g * 0.65)) : (t.shadow ? '0 2px 3px rgba(0,0,0,.25)' : 'none'));
+    el.style.fontFamily = "'" + (t.font || 'Segoe UI Variable Display') + "', 'Segoe UI', system-ui, sans-serif";
+    el.style.fontWeight = weights[t.weight] || 400;
+  }
+
+  // ---------- the time, as the clock shows it ----------
+  var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  function tick() {
+    var d = new Date(), h = d.getHours(), m = d.getMinutes(), s = d.getSeconds();
+    var hm = ((h % 12) || 12) + ':' + (m < 10 ? '0' : '') + m, ap = h < 12 ? 'AM' : 'PM', ss = (s < 10 ? '0' : '') + s;
+    var date = days[d.getDay()] + ', ' + months[d.getMonth()] + ' ' + d.getDate();
+    document.querySelectorAll('.hm').forEach(function (e) { e.textContent = hm; });
+    document.querySelectorAll('.ap').forEach(function (e) { e.textContent = ap; });
+    document.querySelectorAll('.s').forEach(function (e) { e.textContent = ss; });
+    document.querySelectorAll('.date').forEach(function (e) { e.textContent = date; });
+  }
+  tick();
+  setTimeout(function () { tick(); setInterval(tick, 1000); }, 1000 - new Date().getMilliseconds());
+
+  // ---------- the preview window and the gallery ----------
+  var demo = document.getElementById('demo'), chips = document.getElementById('demo-chips'), gallery = document.getElementById('gallery');
+  var themes = fallback, auto = null, current = 0;
+  var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var picks = ['Midnight', 'Neon', 'Sunset', 'Matrix', 'Ocean', 'Paper', 'Synthwave', 'Nixie'];
+
+  function show(i, byHand) {
+    current = i;
+    paint(demo, themes[i]);
+    chips.querySelectorAll('.chip').forEach(function (c) { c.classList.toggle('on', +c.dataset.i === i); });
+    if (byHand && auto) { clearInterval(auto); auto = null; }
+  }
+  function build() {
+    chips.innerHTML = ''; gallery.innerHTML = '';
+    themes.forEach(function (t, i) {
+      if (picks.indexOf(t.name) >= 0) {
+        var c = document.createElement('button');
+        c.type = 'button'; c.className = 'chip'; c.dataset.i = i;
+        c.innerHTML = '<i></i>' + t.name;
+        paint(c.firstChild, t);
+        c.addEventListener('click', function () { show(i, true); });
+        chips.appendChild(c);
+      }
+      var b = document.createElement('button');
+      b.type = 'button'; b.setAttribute('aria-label', 'Try the ' + t.name + ' theme');
+      b.innerHTML = '<div class="card"><div class="time"><span class="hm"></span><span class="side"><span class="ap"></span><span class="s"></span></span></div><div class="date"></div></div><span class="name"></span>';
+      b.querySelector('.name').textContent = t.name;
+      paint(b.querySelector('.card'), t);
+      b.addEventListener('click', function () { show(i, true); document.querySelector('.hero').scrollIntoView({ behavior: still ? 'auto' : 'smooth' }); });
+      gallery.appendChild(b);
+    });
+    show(0, false);
+    tick();
+    if (!still && !auto) {
+      auto = setInterval(function () {
+        var list = chips.querySelectorAll('.chip'), at = 0;
+        list.forEach(function (c, k) { if (+c.dataset.i === current) at = k; });
+        if (list.length) show(+list[(at + 1) % list.length].dataset.i, false);
+      }, 5000);
+    }
+  }
+  build();
+  fetch('themes.json').then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+    if (j && j.themes && j.themes.length) { themes = j.themes; if (auto) { clearInterval(auto); auto = null; } build(); }
+  }).catch(function () {});
+
+  // ---------- versions: releases.json, written by the release script ----------
+  function size(n) { return n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.round(n / 1024) + ' KB'; }
+  function day(s) { var p = s.split('-'); return months[+p[1] - 1] + ' ' + +p[2] + ', ' + p[0]; }
+  function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  fetch('releases.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+    if (!j || !j.releases || !j.releases.length) return;
+    var l = j.releases[0];
+    document.querySelectorAll('.dl-link').forEach(function (a) { a.href = l.url; });
+    document.querySelectorAll('.v-label').forEach(function (e) { e.textContent = l.version; });
+    document.querySelectorAll('.v-plain').forEach(function (e) { e.textContent = l.version; });
+    document.getElementById('hero-meta').innerHTML = 'Version <b>' + esc(l.version) + '</b> · ' + day(l.date) + ' · ' + size(l.size) + ' · Free';
+    document.getElementById('dl-version').textContent = 'Version ' + l.version;
+    document.getElementById('dl-facts').textContent = 'Released ' + day(l.date) + ' · ' + size(l.size) + ' · Windows 10 and 11';
+    if (l.sha256) { document.getElementById('sha-code').textContent = l.sha256; document.getElementById('dl-sha').hidden = false; }
+    var out = '';
+    j.releases.forEach(function (r) {
+      out += '<article><h3>Version ' + esc(r.version) + ' <time datetime="' + esc(r.date) + '">' + day(r.date) + '</time></h3>';
+      if (r.intro) out += '<p>' + esc(r.intro) + '</p>';
+      if (r.notes && r.notes.length) out += '<ul>' + r.notes.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ul>';
+      out += '<a class="get" href="' + esc(r.url) + '">Download ' + esc(r.version) + ' (' + size(r.size) + ')</a></article>';
+    });
+    document.getElementById('releases').innerHTML = out;
+  }).catch(function () {});
+
+  document.getElementById('copy-sha').addEventListener('click', function () {
+    var t = document.getElementById('sha-code').textContent, b = this;
+    if (navigator.clipboard) navigator.clipboard.writeText(t).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy'; }, 1500); });
+  });
+})();
+</script>
+</body>
+</html>
